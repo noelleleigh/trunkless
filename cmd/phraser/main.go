@@ -35,8 +35,8 @@ func main() {
 		'=': true,
 		'`': true,
 		'-': true,
-		// TODO try adding |. it breaks up content that we don't generally want,
-		// anyway, and will lead to short garby phrases being discarded. i think.
+		'|': true,
+		'>': true,
 	}
 
 	s := bufio.NewScanner(os.Stdin)
@@ -123,12 +123,14 @@ func clean(bs []byte) string {
 	s := string(bs)
 	s = strings.ReplaceAll(s, "’", "'")
 	s = strings.ReplaceAll(s, "\"", "")
+	s = strings.ReplaceAll(s, "(", "")
+	s = strings.ReplaceAll(s, "[", "")
+	s = strings.ReplaceAll(s, "{", "")
+	s = strings.ReplaceAll(s, "<", "")
+	s = strings.ReplaceAll(s, "_", "")
+	s = strings.ReplaceAll(s, "*", "")
 	s = strings.TrimSpace(s)
 	s = strings.ToLower(s)
-
-	// TODO strip _
-	// TODO strip *
-	// TODO strip (,{,[
 
 	if alphaPercent(s) < 50.0 {
 		return ""
