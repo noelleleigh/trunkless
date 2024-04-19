@@ -94,7 +94,7 @@ a {
           text-align: right;
         }
         div.linectrl button {
-          width: 30px;
+          width: 60px;
           height: 30px;
         }
         div.line:not(.unpinned) .linetext {
@@ -110,7 +110,7 @@ a {
           <span class="linetext"></span>
         </div>
         <div class="linectrl">
-          <button is="line-pinner">L</button><button is="line-editor">E</button><button is="line-remover">R</button>
+          <button is="line-pinner">PIN</button><button is="line-editor">EDIT</button><button is="line-remover">KILL</button>
         </div>
       </div>
       <div is="source-text" class="source"></div>
@@ -137,11 +137,11 @@ a {
     </div>
     <div class="main">
       <div style="margin-bottom: 5px">
-        <button is="poem-regenner">↺</button>
+        <button is="poem-regenner">regenerate unpinned lines</button>
       </div>
       <div is="poem-lines"></div>
       <div>
-        <button is="line-adder" title="add new line">+</button>
+        <button is="line-adder" title="add new line">add new line</button>
       </div>
     </div>
     <script src="/html2canvas.min.js"></script>

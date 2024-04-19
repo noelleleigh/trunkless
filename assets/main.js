@@ -34,7 +34,7 @@ class LineRemover extends Button {
 class LinePinner extends Button {
   connectedCallback() {
     //this.innerText = "lock";
-    this.setAttribute("title", "lock line in place");
+    this.setAttribute("title", "pin line in place");
   }
   click() {
     const l = this.closest("div.line");
