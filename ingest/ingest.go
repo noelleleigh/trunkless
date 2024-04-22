@@ -1,12 +1,10 @@
-package main
+package ingest
 
 import (
 	"bufio"
 	"database/sql"
-	"errors"
 	"fmt"
-	"os"
-	"strings"
+	"io"
 
 	_ "github.com/mattn/go-sqlite3"
 )
@@ -29,10 +27,7 @@ func createSource(db *sql.DB, sourceName string) (int64, error) {
 	return result.LastInsertId()
 }
 
-func _main(args []string) error {
-	if len(os.Args) == 0 {
-		return errors.New("need a source name argument")
-	}
+func Ingest(sourceName string, ins io.Reader) error {
 	db, err := sql.Open("sqlite3", dsn)
 	if err != nil {
 		return err
@@ -40,9 +35,8 @@ func _main(args []string) error {
 
 	defer db.Close()
 
-	s := bufio.NewScanner(os.Stdin)
+	s := bufio.NewScanner(ins)
 
-	sourceName := strings.Join(os.Args[1:], " ")
 	sourceID, err := createSource(db, sourceName)
 	if err != nil {
 		return fmt.Errorf("could not make source: %w", err)
@@ -67,11 +61,4 @@ func _main(args []string) error {
 	}
 
 	return tx.Commit()
-}
-
-func main() {
-	if err := _main(os.Args[1:]); err != nil {
-		fmt.Fprintf(os.Stderr, "error: %s", err)
-		os.Exit(1)
-	}
 }
