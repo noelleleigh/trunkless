@@ -14,6 +14,26 @@ import (
 	"strings"
 )
 
+func conjPrep(phraseBuff []byte, r rune) int {
+	if r != ' ' {
+		return -1
+	}
+
+	suffices := []string{"from", "at", "but", "however", "yet", "though", "and", "to", "on", "or"}
+	maxLen := 8 // TODO magic number based on longest suffix
+	offset := len(phraseBuff) - maxLen
+	if offset < 0 {
+		offset = 0
+	}
+	end := string(phraseBuff[offset:])
+	for _, s := range suffices {
+		if strings.HasSuffix(end, " "+s) {
+			return len(s)
+		}
+	}
+	return -1
+}
+
 func main() {
 	phraseMarkers := map[rune]bool{
 		';': true,
@@ -39,13 +59,34 @@ func main() {
 		'>': true,
 	}
 
+	// I want to experiment with treating prepositions and conjunctions as phrase
+	// markers.
+
+	// to do this i would need to check the phraseBuff when I check phraseMarkers and then split accordingly
+
 	s := bufio.NewScanner(os.Stdin)
 	phraseBuff := []byte{}
 	printed := false
 	for s.Scan() {
 		text := strings.TrimSpace(s.Text())
 		for i, r := range text {
-			if ok, val := phraseMarkers[r]; ok && val {
+			if ok := phraseMarkers[r]; ok {
+				if len(phraseBuff) >= 10 {
+					cleaned := clean(phraseBuff)
+					if len(cleaned) > 0 {
+						fmt.Println(cleaned)
+						printed = true
+					}
+				}
+				if !printed {
+					//fmt.Fprintf(os.Stderr, "SKIP: %s\n", string(phraseBuff))
+				}
+				printed = false
+				phraseBuff = []byte{}
+			} else if v := conjPrep(phraseBuff, r); v > 0 {
+				// TODO erase or keep? starting with erase.
+				phraseBuff = phraseBuff[0 : len(phraseBuff)-v]
+				// TODO this pasta is copied
 				if len(phraseBuff) >= 10 {
 					cleaned := clean(phraseBuff)
 					if len(cleaned) > 0 {

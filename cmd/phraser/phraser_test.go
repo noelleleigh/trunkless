@@ -2,6 +2,98 @@ package main
 
 import "testing"
 
+func Test_conjPrep(t *testing.T) {
+	type args struct {
+		buff []byte
+		r    rune
+	}
+	cs := []struct {
+		name     string
+		args     args
+		expected int
+	}{
+		{
+			name:     "empty buffer",
+			args:     args{[]byte(""), ' '},
+			expected: -1,
+		},
+		{
+			name:     "not a space yet",
+			args:     args{[]byte("saccharine juice from"), 'x'},
+			expected: -1,
+		},
+		{
+			name:     "from",
+			args:     args{[]byte("i will eat from"), ' '},
+			expected: 4,
+		},
+		{
+			name:     "no preceding space",
+			args:     args{[]byte("wakkabarblurpfrom"), ' '},
+			expected: -1,
+		},
+		{
+			name:     "however",
+			args:     args{[]byte("my eyes are hollow, however"), ' '},
+			expected: 7,
+		},
+		{
+			name:     "at",
+			args:     args{[]byte("there will be no more joy at"), ' '},
+			expected: 2,
+		},
+		{
+			name:     "but",
+			args:     args{[]byte("i buried him, but"), ' '},
+			expected: 3,
+		},
+		{
+			name:     "yet",
+			args:     args{[]byte("the echoes quited yet"), ' '},
+			expected: 3,
+		},
+		{
+			name:     "though",
+			args:     args{[]byte("my eyes were closed though"), ' '},
+			expected: 6,
+		},
+		{
+			name:     "and",
+			args:     args{[]byte("i raised the torch and"), ' '},
+			expected: 3,
+		},
+		{
+			name:     "to",
+			args:     args{[]byte("thousands more to"), ' '},
+			expected: 2,
+		},
+		{
+			name:     "on",
+			args:     args{[]byte("bringing rain down on"), ' '},
+			expected: 2,
+		},
+		{
+			name:     "no match",
+			args:     args{[]byte("i raised the torch"), ' '},
+			expected: -1,
+		},
+		{
+			name:     "or",
+			args:     args{[]byte("whether good or"), ' '},
+			expected: 2,
+		},
+	}
+
+	for _, c := range cs {
+		t.Run(c.name, func(t *testing.T) {
+			result := conjPrep(c.args.buff, c.args.r)
+			if result != c.expected {
+				t.Errorf("got '%v', expected '%v'", result, c.expected)
+			}
+		})
+	}
+}
+
 func Test_isAlpha(t *testing.T) {
 	cs := []struct {
 		arg      rune
