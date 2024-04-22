@@ -170,6 +170,7 @@ func clean(bs []byte) string {
 	s = strings.ReplaceAll(s, "<", "")
 	s = strings.ReplaceAll(s, "_", "")
 	s = strings.ReplaceAll(s, "*", "")
+	s = strings.TrimLeft(s, "'\"")
 	s = strings.TrimSpace(s)
 	s = strings.ToLower(s)
 
