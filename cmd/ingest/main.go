@@ -11,7 +11,7 @@ import (
 	_ "github.com/mattn/go-sqlite3"
 )
 
-const dsn = "phrase.db"
+const dsn = "phrase.db?_journal=OFF"
 
 func createSource(db *sql.DB, sourceName string) (int64, error) {
 	stmt, err := db.Prepare("INSERT INTO sources (name) VALUES (?) ON CONFLICT DO NOTHING RETURNING id")
@@ -23,6 +23,8 @@ func createSource(db *sql.DB, sourceName string) (int64, error) {
 	if err != nil {
 		return -1, err
 	}
+
+	defer stmt.Close()
 
 	return result.LastInsertId()
 }
@@ -46,9 +48,15 @@ func _main(args []string) error {
 		return fmt.Errorf("could not make source: %w", err)
 	}
 
+	tx, err := db.Begin()
+	if err != nil {
+		return fmt.Errorf("failed to create transaction: %w", err)
+	}
+
+	stmt, err := tx.Prepare("INSERT INTO phrases (sourceid, phrase) VALUES (?, ?) ON CONFLICT DO NOTHING")
+	defer stmt.Close()
 	for s.Scan() {
 		phrase := s.Text()
-		stmt, err := db.Prepare("INSERT INTO phrases (sourceid, phrase) VALUES (?, ?) ON CONFLICT DO NOTHING")
 		if err != nil {
 			return err
 		}
@@ -58,7 +66,7 @@ func _main(args []string) error {
 		}
 	}
 
-	return nil
+	return tx.Commit()
 }
 
 func main() {
