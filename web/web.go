@@ -12,6 +12,8 @@ import (
 	"github.com/vilmibm/trunkless/db"
 )
 
+// TODO detect max id on startup
+
 type source struct {
 	ID   int64
 	Name string

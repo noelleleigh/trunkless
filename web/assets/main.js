@@ -33,20 +33,31 @@ class LineRemover extends Button {
 
 class LinePinner extends Button {
   connectedCallback() {
-    //this.innerText = "lock";
     this.setAttribute("title", "pin line in place");
   }
   click() {
     const l = this.closest("div.line");
     l.classList.toggle("unpinned");
     if (l.classList.contains("unpinned")) {
-     // this.innerText = "lock";
       this.classList.remove("pinned");
       this.setAttribute("title", "lock line in place");
     } else {
       this.classList.add("pinned");
       this.setAttribute("title", "unlock line");
     }
+  }
+}
+
+class LineRegenner extends Button {
+  connectedCallback() {
+    this.setAttribute("title", "regenerate just this line");
+  }
+  click() {
+    const l = this.closest("div.line");
+    if (!l.classList.contains("unpinned")) {
+      return;
+    }
+    l.regen()
   }
 }
 
@@ -233,7 +244,6 @@ class SourceText extends HTMLDivElement {
   edited() {
     const line = this.parentElement;
     const text = line.querySelector(".linetext").innerText;
-    console.log(text);
     const orig = line.originalText;
     if (text == "" || (text != orig && !orig.includes(text))) {
       this.update({"Name": "original"});
@@ -411,6 +421,7 @@ customElements.define("theme-toggler", ThemeToggler, { extends: "a" });
 customElements.define("source-text", SourceText, { extends: "div" });
 customElements.define("line-remover", LineRemover, { extends: "button" });
 customElements.define("line-pinner", LinePinner, { extends: "button" });
+customElements.define("line-regenner", LineRegenner, { extends: "button" });
 customElements.define("line-editor", LineEditor, { extends: "button" });
 customElements.define("line-adder", LineAdder, { extends: "button" });
 customElements.define("poem-regenner", PoemRegenner, {extends: "button"});
