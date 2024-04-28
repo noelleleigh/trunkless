@@ -1,8 +1,7 @@
 package cmd
 
 import (
-	"os"
-	"strings"
+	"fmt"
 
 	"github.com/spf13/cobra"
 	"github.com/vilmibm/trunkless/ingest"
@@ -13,8 +12,13 @@ func init() {
 }
 
 var ingestCmd = &cobra.Command{
-	Use: "ingest",
+	Use:  "ingest corpusname",
+	Args: cobra.ExactArgs(1),
 	RunE: func(cmd *cobra.Command, args []string) error {
-		return ingest.Ingest(strings.Join(args[1:], " "), os.Stdin)
+		switch args[0] {
+		case "gutenberg":
+			return ingest.IngestGut()
+		}
+		return fmt.Errorf("corpus unknown: %s", args[0])
 	},
 }

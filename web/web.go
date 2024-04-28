@@ -1,6 +1,7 @@
 package web
 
 import (
+	"context"
 	"crypto/rand"
 	"html/template"
 	"log"
@@ -15,7 +16,7 @@ import (
 // TODO detect max id on startup
 
 type source struct {
-	ID   int64
+	ID   string
 	Name string
 }
 
@@ -38,6 +39,7 @@ func Serve() error {
 	r.StaticFile("/main.js", "./web/assets/main.js")
 	r.StaticFile("/html2canvas.min.js", "./web/assets/html2canvas.min.js")
 
+	// TODO use new db functions for id ranges
 	randMax := big.NewInt(db.MaxID)
 
 	r.HEAD("/", func(c *gin.Context) {
@@ -46,19 +48,21 @@ func Serve() error {
 
 	r.GET("/", func(c *gin.Context) {
 		c.HTML(http.StatusOK, "index.tmpl", struct {
+			// TODO handle multiple corpora
 			MaxID int
-			// TODO anything else?
 		}{db.MaxID})
 	})
 
+	// TODO retool this for pg
+
 	r.GET("/line", func(c *gin.Context) {
-		db, err := db.Connect()
+		conn, err := db.Connect()
 		if err != nil {
 			log.Println(err.Error())
 			c.String(http.StatusInternalServerError, "oh no.")
 			return
 		}
-		defer db.Close()
+		defer conn.Close(context.Background())
 
 		id, err := rand.Int(rand.Reader, randMax)
 		if err != nil {
@@ -67,14 +71,7 @@ func Serve() error {
 			return
 		}
 
-		stmt, err := db.Prepare("select p.phrase, p.id, s.name from phrases p join sources s on p.sourceid = s.id where p.id = ?")
-		if err != nil {
-			log.Println(err.Error())
-			c.String(http.StatusInternalServerError, "oh no.")
-			return
-		}
-
-		row := stmt.QueryRow(id.Int64())
+		row := conn.QueryRow(context.Background(), "select p.phrase, s.id, s.name from phrases p join sources s on p.sourceid = s.id where p.id = $1", id.Int64())
 		var p phrase
 		var s source
 		err = row.Scan(&p.Text, &s.ID, &s.Name)

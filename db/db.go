@@ -1,21 +1,25 @@
 package db
 
 import (
-	"database/sql"
+	"context"
+	"fmt"
 
-	_ "github.com/mattn/go-sqlite3"
+	"github.com/jackc/pgx/v5"
 )
 
 const (
-	dsn   = "phrase.db?cache=shared&mode=r"
-	MaxID = 467014991
+	dburl = "postgresql://vilmibm/postgres?host=/home/vilmibm/src/trunkless/pgdata/sockets"
+	//	MaxID = 467014991
+	MaxID = 345507789
 )
 
-func Connect() (*sql.DB, error) {
-	db, err := sql.Open("sqlite3", dsn)
+func Connect() (*pgx.Conn, error) {
+	conn, err := pgx.Connect(context.Background(), "")
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("Unable to connect to database: %w", err)
 	}
 
-	return db, nil
+	return conn, nil
 }
+
+// TODO func for getting ID ranges for each corpus in phrases
