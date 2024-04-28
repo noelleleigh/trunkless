@@ -1,4 +1,4 @@
-package main
+package cutup
 
 import "testing"
 
@@ -181,7 +181,7 @@ func Test_clean(t *testing.T) {
 	}{
 		{
 			name:     "all whitespace rejected",
-			arg:      "     ",
+			arg:      "    		 ",
 			expected: "",
 		},
 		{
@@ -192,6 +192,16 @@ func Test_clean(t *testing.T) {
 		{
 			name:     "dquotes removed",
 			arg:      "cats \"eat\" fish",
+			expected: "cats eat fish",
+		},
+		{
+			name:     "leading quote removed",
+			arg:      "'cats eat fish",
+			expected: "cats eat fish",
+		},
+		{
+			name:     "leading double quote removed",
+			arg:      "\"cats eat fish",
 			expected: "cats eat fish",
 		},
 		{
