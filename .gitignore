@@ -7,3 +7,4 @@ cmd/gutcontent/gutcontent
 node_modules
 package.json
 package-lock.json
+pgdata
