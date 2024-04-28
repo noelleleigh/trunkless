@@ -8,6 +8,7 @@ import (
 	"path"
 	"strings"
 
+	"github.com/jackc/pgx/v5"
 	"github.com/vilmibm/trunkless/db"
 )
 
@@ -16,7 +17,9 @@ const cutupDir = "/home/vilmibm/pg_plaintext/cutup"
 // TODO
 // - [X] finalize gutenberg ingestion
 // - [ ] clean up commands
-// - [ ] clean up repo
+// 	- [X] get down to just ingest/cutup/serve
+//  - [ ] add arguments for generalizing
+// - [X] clean up repo
 // - [ ] push and deploy to town with new pg db
 // - [ ] gamefaqs extraction
 // - [ ] corpus selector
@@ -25,24 +28,20 @@ const cutupDir = "/home/vilmibm/pg_plaintext/cutup"
 // - [ ] blog post
 // - [ ] launch
 
-func IngestGut() error {
-	conn, err := db.Connect()
-	if err != nil {
-		return err
-	}
-	defer conn.Close(context.Background())
+type IngestOpts struct {
+	Conn     *pgx.Conn
+	Corpus   string
+	CutupDir string
+}
 
-	dir, err := os.Open(cutupDir)
+func Ingest(o IngestOpts) error {
+	conn := o.Conn
+
+	dir, err := os.Open(o.CutupDir)
 	if err != nil {
 		return fmt.Errorf("could not open %s: %w", cutupDir, err)
 	}
-
-	// echo gutenberg | sha1sum | head -c7
-	corpusid := "cb20c3e"
-	_, err = conn.Exec(context.Background(), "INSERT INTO corpora (id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING", corpusid, "gutenberg")
-	if err != nil {
-		return fmt.Errorf("failed to create gutenberg corpus: %w", err)
-	}
+	defer dir.Close()
 
 	entries, err := dir.Readdirnames(-1)
 	if err != nil {
@@ -53,7 +52,15 @@ func IngestGut() error {
 	if err != nil {
 		return fmt.Errorf("failed to open source index: %w", err)
 	}
+	defer idx.Close()
 
+	corpusid := db.StrToID(o.Corpus)
+	_, err = conn.Exec(context.Background(),
+		"INSERT INTO corpora (id, name) VALUES ($1, $2) ON CONFLICT DO NOTHING",
+		corpusid, o.Corpus)
+	if err != nil {
+		return fmt.Errorf("failed to create '%s' corpus: %w", o.Corpus, err)
+	}
 	tx, err := conn.Begin(context.Background())
 	if err != nil {
 		return fmt.Errorf("could not open transaction: %w", err)
@@ -84,6 +91,5 @@ func IngestGut() error {
 			fmt.Fprintf(os.Stderr, "failed to ingest '%s': %s\n", p, err.Error())
 		}
 	}
-
 	return nil
 }
