@@ -138,49 +138,6 @@ func worker(paths <-chan string, sources chan<- string) {
 	}
 }
 
-func CutupFiles() error {
-	err := os.Mkdir(tgtDir, 0770)
-	if err != nil {
-		return err
-	}
-
-	dir, err := os.Open(srcDir)
-	if err != nil {
-		return fmt.Errorf("could not open %s: %w", srcDir, err)
-	}
-	entries, err := dir.Readdirnames(-1)
-	if err != nil {
-		return fmt.Errorf("could not read %s: %w", srcDir, err)
-	}
-
-	paths := make(chan string, len(entries))
-	sources := make(chan string, len(entries))
-
-	for x := 0; x < workers; x++ {
-		go worker(paths, sources)
-	}
-
-	for _, e := range entries {
-		paths <- path.Join(srcDir, e)
-	}
-	close(paths)
-
-	ixFile, err := os.Create(path.Join(tgtDir, "_title_index.tsv"))
-	if err != nil {
-		return fmt.Errorf("could not open index file: %w", err)
-	}
-	defer ixFile.Close()
-
-	for i := 0; i < len(entries); i++ {
-		l := <-sources
-		fmt.Printf("%d/%d\r", i+1, len(entries))
-		fmt.Fprintln(ixFile, l)
-	}
-	close(sources)
-
-	return nil
-}
-
 func conjPrep(phraseBuff []byte, r rune) int {
 	if r != ' ' {
 		return -1
