@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 	"github.com/vilmibm/trunkless/cutup"
 )
@@ -9,12 +11,15 @@ func init() {
 	rootCmd.Flags().StringP("cutupdir", "d", "", "directory in which to write phrase files")
 	rootCmd.Flags().StringP("srcdir", "s", "", "directory of files to cut up")
 	rootCmd.Flags().IntP("workers", "w", 10, "number of workers to use when cutting up")
+	rootCmd.Flags().StringP("flavor", "f", "", "set of adapters to use when cutting up")
 
 	rootCmd.MarkFlagRequired("cutupdir")
 	rootCmd.MarkFlagRequired("srcdir")
 
 	rootCmd.AddCommand(cutupCmd)
 }
+
+var validFlavors = []string{"gutenberg"}
 
 var cutupCmd = &cobra.Command{
 	Use:  "cutup",
@@ -23,10 +28,24 @@ var cutupCmd = &cobra.Command{
 		cutupdir, _ := cmd.Flags().GetString("cutupdir")
 		srcdir, _ := cmd.Flags().GetString("srcdir")
 		workers, _ := cmd.Flags().GetInt("workers")
+		flavor, _ := cmd.Flags().GetString("flavor")
+
+		if flavor != "" {
+			valid := false
+			for _, f := range validFlavors {
+				if flavor == f {
+					valid = true
+				}
+			}
+			if !valid {
+				return fmt.Errorf("invalid flavor '%s'; valid flavors: %v", flavor, validFlavors)
+			}
+		}
 		opts := cutup.CutupOpts{
 			CutupDir:   cutupdir,
 			SrcDir:     srcdir,
 			NumWorkers: workers,
+			Flavor:     flavor,
 		}
 		return cutup.Cutup(opts)
 	},

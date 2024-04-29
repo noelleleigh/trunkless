@@ -10,7 +10,83 @@ import (
 	"github.com/vilmibm/trunkless/db"
 )
 
-// TODO generalize so it's not gutenberg specific
+type CutupOpts struct {
+	SrcDir           string
+	CutupDir         string
+	NumWorkers       int
+	Flavor           string
+	headerEndCheck   func(string) bool
+	footerBeginCheck func(string) bool
+}
+
+func defaultHeaderEndCheck(string) bool   { return true }
+func defaultFooterBeginCheck(string) bool { return false }
+
+func gutenbergHeaderEndCheck(s string) bool {
+	return strings.HasPrefix(s, "*** START")
+}
+
+func gutenbergFooterBeginCheck(s string) bool {
+	return strings.HasPrefix(s, "*** END")
+}
+
+func extractGutenbergTitle(s string) string {
+	title, _ := strings.CutPrefix(s, "*** START OF THE PROJECT GUTENBERG")
+	title, _ = strings.CutPrefix(title, " EBOOK")
+	return strings.TrimSpace(strings.Map(rep, title))
+}
+
+func Cutup(opts CutupOpts) error {
+	if opts.Flavor == "gutenberg" {
+		opts.headerEndCheck = gutenbergHeaderEndCheck
+		opts.footerBeginCheck = gutenbergFooterBeginCheck
+	} else {
+		opts.headerEndCheck = defaultHeaderEndCheck
+		opts.footerBeginCheck = defaultFooterBeginCheck
+	}
+	err := os.Mkdir(opts.CutupDir, 0775)
+	if err != nil {
+		return fmt.Errorf("could not make '%s': %w", opts.CutupDir, err)
+	}
+
+	src, err := os.Open(opts.SrcDir)
+	if err != nil {
+		return fmt.Errorf("could not open '%s' for reading: %w", opts.SrcDir, err)
+	}
+
+	entries, err := src.Readdirnames(-1)
+	if err != nil {
+		return fmt.Errorf("could not read '%s': %w", opts.SrcDir, err)
+	}
+
+	paths := make(chan string, len(entries))
+	sources := make(chan string, len(entries))
+
+	for x := 0; x < opts.NumWorkers; x++ {
+		go worker(opts, paths, sources)
+	}
+
+	for _, e := range entries {
+		paths <- path.Join(opts.SrcDir, e)
+	}
+	close(paths)
+
+	ixPath := path.Join(opts.CutupDir, "_title_index.csv")
+	ixFile, err := os.Create(ixPath)
+	if err != nil {
+		return fmt.Errorf("could not open '%s': %w", ixPath, err)
+	}
+	defer ixFile.Close()
+
+	for i := 0; i < len(entries); i++ {
+		l := <-sources
+		fmt.Printf("%d/%d\r", i+1, len(entries))
+		fmt.Fprintln(ixFile, l)
+	}
+	close(sources)
+
+	return nil
+}
 
 func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 	for p := range paths {
@@ -34,18 +110,19 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 
 		for s.Scan() {
 			text = strings.TrimSpace(s.Text())
-			if strings.HasPrefix(text, "*** START") {
-				title, _ = strings.CutPrefix(text, "*** START OF THE PROJECT GUTENBERG")
-				title, _ = strings.CutPrefix(title, " EBOOK")
-				title = strings.Map(rep, title)
-				title = strings.TrimSpace(title)
+			if opts.headerEndCheck(text) {
+				if opts.Flavor == "gutenberg" {
+					title = extractGutenbergTitle(text)
+					continue
+				} else {
+					title = path.Base(p)
+				}
 				inHeader = false
-				continue
 			}
 			if inHeader {
 				continue
 			}
-			if strings.HasPrefix(text, "*** END") {
+			if opts.footerBeginCheck(text) {
 				break
 			}
 			if title == "" {
@@ -215,55 +292,4 @@ func clean(bs []byte) string {
 	}
 
 	return s
-}
-
-type CutupOpts struct {
-	SrcDir     string
-	CutupDir   string
-	NumWorkers int
-}
-
-func Cutup(opts CutupOpts) error {
-	err := os.Mkdir(opts.CutupDir, 0775)
-	if err != nil {
-		return fmt.Errorf("could not make '%s': %w", opts.CutupDir, err)
-	}
-
-	src, err := os.Open(opts.SrcDir)
-	if err != nil {
-		return fmt.Errorf("could not open '%s' for reading: %w", opts.SrcDir, err)
-	}
-
-	entries, err := src.Readdirnames(-1)
-	if err != nil {
-		return fmt.Errorf("could not read '%s': %w", opts.SrcDir, err)
-	}
-
-	paths := make(chan string, len(entries))
-	sources := make(chan string, len(entries))
-
-	for x := 0; x < opts.NumWorkers; x++ {
-		go worker(opts, paths, sources)
-	}
-
-	for _, e := range entries {
-		paths <- path.Join(opts.SrcDir, e)
-	}
-	close(paths)
-
-	ixPath := path.Join(opts.CutupDir, "_title_index.csv")
-	ixFile, err := os.Create(ixPath)
-	if err != nil {
-		return fmt.Errorf("could not open '%s': %w", ixPath, err)
-	}
-	defer ixFile.Close()
-
-	for i := 0; i < len(entries); i++ {
-		l := <-sources
-		fmt.Printf("%d/%d\r", i+1, len(entries))
-		fmt.Fprintln(ixFile, l)
-	}
-	close(sources)
-
-	return nil
 }
