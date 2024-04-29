@@ -2,48 +2,17 @@ package cutup
 
 import (
 	"bufio"
-	"crypto/sha1"
 	"fmt"
 	"os"
 	"path"
 	"strings"
+
+	"github.com/vilmibm/trunkless/db"
 )
 
-const (
-	srcDir  = "/home/vilmibm/pg_plaintext/files"
-	tgtDir  = "/home/vilmibm/pg_plaintext/cutup"
-	workers = 10
-)
-
-// TODO configurable src/tgt dir
 // TODO generalize so it's not gutenberg specific
 
-func worker(paths <-chan string, sources chan<- string) {
-	// TODO generalize to n character phrase markers, write new function
-	phraseMarkers := map[rune]bool{
-		';': true,
-		',': true,
-		':': true,
-		'.': true,
-		'?': true,
-		'!': true,
-		//'(':  true,
-		')': true,
-		//'{':  true,
-		'}': true,
-		//'[':  true,
-		']': true,
-		//'\'': true,
-		//'"':  true,
-		//'“':  true,
-		'”': true,
-		'=': true,
-		'`': true,
-		'-': true,
-		'|': true,
-		'>': true,
-	}
-
+func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 	for p := range paths {
 		f, err := os.Open(p)
 		if err != nil {
@@ -59,7 +28,6 @@ func worker(paths <-chan string, sources chan<- string) {
 
 		var of *os.File
 		var cleaned string
-		var ok bool
 		var asStr string
 		var text string
 		var prefix string
@@ -85,28 +53,17 @@ func worker(paths <-chan string, sources chan<- string) {
 				break
 			}
 			if sourceid == "" {
-				sourceid = fmt.Sprintf("%x", sha1.Sum([]byte(title)))[0:6]
+				sourceid = db.StrToID(title)
 				prefix = sourceid + "\t"
-				of, err = os.Create(path.Join(tgtDir, sourceid))
+				of, err = os.Create(path.Join(opts.CutupDir, sourceid))
 				if err != nil {
 					fmt.Fprintf(os.Stderr, "could not open '%s' for writing: %s", sourceid, err.Error())
 					break
 				}
 			}
 			for i, r := range text {
-				if ok = phraseMarkers[r]; ok {
-					if len(phraseBuff) >= 10 {
-						cleaned = clean(phraseBuff)
-						if len(cleaned) > 0 {
-							fmt.Fprintln(of, prefix+cleaned)
-							written++
-						}
-					}
-					phraseBuff = []byte{}
-				} else if v := conjPrep(phraseBuff, r); v > 0 {
-					// TODO erase or keep? starting with erase.
+				if v := shouldBreak(phraseBuff, r); v > 0 {
 					phraseBuff = phraseBuff[0 : len(phraseBuff)-v]
-					// TODO this pasta is copied
 					if len(phraseBuff) >= 10 {
 						cleaned = clean(phraseBuff)
 						if len(cleaned) > 0 {
@@ -138,14 +95,38 @@ func worker(paths <-chan string, sources chan<- string) {
 	}
 }
 
-func conjPrep(phraseBuff []byte, r rune) int {
+var phraseMarkers = map[rune]bool{
+	';': true,
+	',': true,
+	':': true,
+	'.': true,
+	'?': true,
+	'!': true,
+	')': true,
+	'}': true,
+	']': true,
+	'”': true,
+	'=': true,
+	'`': true,
+	'-': true,
+	'|': true,
+	'>': true,
+}
+
+var suffices = []string{"from", "at", "but", "however", "yet", "though", "and", "to", "on", "or"}
+
+const maxSuffixLen = 8 // magic number based on longest suffix
+
+func shouldBreak(phraseBuff []byte, r rune) int {
+	if ok := phraseMarkers[r]; ok {
+		return 1
+	}
+
 	if r != ' ' {
 		return -1
 	}
 
-	suffices := []string{"from", "at", "but", "however", "yet", "though", "and", "to", "on", "or"}
-	maxLen := 8 // TODO magic number based on longest suffix
-	offset := len(phraseBuff) - maxLen
+	offset := len(phraseBuff) - maxSuffixLen
 	if offset < 0 {
 		offset = 0
 	}
@@ -155,67 +136,8 @@ func conjPrep(phraseBuff []byte, r rune) int {
 			return len(s)
 		}
 	}
+
 	return -1
-}
-
-func isAlpha(r rune) bool {
-	// TODO use rune numerical ranges for this
-	switch strings.ToLower(string(r)) {
-	case "a":
-		return true
-	case "b":
-		return true
-	case "c":
-		return true
-	case "d":
-		return true
-	case "e":
-		return true
-	case "f":
-		return true
-	case "g":
-		return true
-	case "h":
-		return true
-	case "i":
-		return true
-	case "j":
-		return true
-	case "k":
-		return true
-	case "l":
-		return true
-	case "m":
-		return true
-	case "n":
-		return true
-	case "o":
-		return true
-	case "p":
-		return true
-	case "q":
-		return true
-	case "r":
-		return true
-	case "s":
-		return true
-	case "t":
-		return true
-	case "u":
-		return true
-	case "v":
-		return true
-	case "w":
-		return true
-	case "x":
-		return true
-	case "y":
-		return true
-	case "z":
-		return true
-	}
-
-	return false
 }
 
 func alphaPercent(s string) float64 {
@@ -224,7 +146,7 @@ func alphaPercent(s string) float64 {
 
 	for _, r := range s {
 		total++
-		if isAlpha(r) {
+		if (r >= 'A' && r <= 'Z') || (r >= 'a' && r <= 'z') {
 			alpha++
 		}
 	}
@@ -321,7 +243,7 @@ func Cutup(opts CutupOpts) error {
 	sources := make(chan string, len(entries))
 
 	for x := 0; x < opts.NumWorkers; x++ {
-		go worker(paths, sources)
+		go worker(opts, paths, sources)
 	}
 
 	for _, e := range entries {

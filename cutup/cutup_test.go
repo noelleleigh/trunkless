@@ -2,7 +2,7 @@ package cutup
 
 import "testing"
 
-func Test_conjPrep(t *testing.T) {
+func Test_shouldBreak(t *testing.T) {
 	type args struct {
 		buff []byte
 		r    rune
@@ -82,61 +82,12 @@ func Test_conjPrep(t *testing.T) {
 			args:     args{[]byte("whether good or"), ' '},
 			expected: 2,
 		},
+		// TODO test phrasemarkers
 	}
 
 	for _, c := range cs {
 		t.Run(c.name, func(t *testing.T) {
-			result := conjPrep(c.args.buff, c.args.r)
-			if result != c.expected {
-				t.Errorf("got '%v', expected '%v'", result, c.expected)
-			}
-		})
-	}
-}
-
-func Test_isAlpha(t *testing.T) {
-	cs := []struct {
-		arg      rune
-		expected bool
-	}{
-		{arg: 'a', expected: true},
-		{arg: 'b', expected: true},
-		{arg: 'c', expected: true},
-		{arg: 'd', expected: true},
-		{arg: 'e', expected: true},
-		{arg: 'f', expected: true},
-		{arg: 'g', expected: true},
-		{arg: 'h', expected: true},
-		{arg: 'i', expected: true},
-		{arg: 'j', expected: true},
-		{arg: 'k', expected: true},
-		{arg: 'l', expected: true},
-		{arg: 'm', expected: true},
-		{arg: 'n', expected: true},
-		{arg: 'o', expected: true},
-		{arg: 'p', expected: true},
-		{arg: 'q', expected: true},
-		{arg: 'r', expected: true},
-		{arg: 's', expected: true},
-		{arg: 't', expected: true},
-		{arg: 'u', expected: true},
-		{arg: 'v', expected: true},
-		{arg: 'w', expected: true},
-		{arg: 'x', expected: true},
-		{arg: 'y', expected: true},
-		{arg: 'z', expected: true},
-		{arg: '1'},
-		{arg: '2'},
-		{arg: '3'},
-		{arg: '\''},
-		{arg: '"'},
-		{arg: '#'},
-		{arg: '%'},
-	}
-
-	for _, c := range cs {
-		t.Run(string(c.arg), func(t *testing.T) {
-			result := isAlpha(c.arg)
+			result := shouldBreak(c.args.buff, c.args.r)
 			if result != c.expected {
 				t.Errorf("got '%v', expected '%v'", result, c.expected)
 			}
@@ -150,7 +101,11 @@ func Test_alphaPercent(t *testing.T) {
 		expected float64
 	}{
 		{
-			arg:      "abcd",
+			arg:      "abcdefghijklmnopqrstuvwxyz",
+			expected: 100.0,
+		},
+		{
+			arg:      "ABCDEFGHIJKLMNOPQRSTUVWXYZ",
 			expected: 100.0,
 		},
 		{
