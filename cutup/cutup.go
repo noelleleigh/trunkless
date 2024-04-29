@@ -337,3 +337,54 @@ func clean(bs []byte) string {
 
 	return s
 }
+
+type CutupOpts struct {
+	SrcDir     string
+	CutupDir   string
+	NumWorkers int
+}
+
+func Cutup(opts CutupOpts) error {
+	err := os.Mkdir(opts.CutupDir, 0775)
+	if err != nil {
+		return fmt.Errorf("could not make '%s': %w", opts.CutupDir, err)
+	}
+
+	src, err := os.Open(opts.SrcDir)
+	if err != nil {
+		return fmt.Errorf("could not open '%s' for reading: %w", opts.SrcDir, err)
+	}
+
+	entries, err := src.Readdirnames(-1)
+	if err != nil {
+		return fmt.Errorf("could not read '%s': %w", opts.SrcDir, err)
+	}
+
+	paths := make(chan string, len(entries))
+	sources := make(chan string, len(entries))
+
+	for x := 0; x < opts.NumWorkers; x++ {
+		go worker(paths, sources)
+	}
+
+	for _, e := range entries {
+		paths <- path.Join(opts.SrcDir, e)
+	}
+	close(paths)
+
+	ixPath := path.Join(opts.CutupDir, "_title_index.csv")
+	ixFile, err := os.Create(ixPath)
+	if err != nil {
+		return fmt.Errorf("could not open '%s': %w", ixPath, err)
+	}
+	defer ixFile.Close()
+
+	for i := 0; i < len(entries); i++ {
+		l := <-sources
+		fmt.Printf("%d/%d\r", i+1, len(entries))
+		fmt.Fprintln(ixFile, l)
+	}
+	close(sources)
+
+	return nil
+}
