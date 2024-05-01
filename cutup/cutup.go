@@ -71,7 +71,7 @@ func Cutup(opts CutupOpts) error {
 	}
 	close(paths)
 
-	ixPath := path.Join(opts.CutupDir, "_title_index.csv")
+	ixPath := path.Join(opts.CutupDir, "_title_index.tsv")
 	ixFile, err := os.Create(ixPath)
 	if err != nil {
 		return fmt.Errorf("could not open '%s': %w", ixPath, err)
@@ -110,14 +110,14 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 
 		for s.Scan() {
 			text = strings.TrimSpace(s.Text())
-			if opts.headerEndCheck(text) {
+			if inHeader && opts.headerEndCheck(text) {
+				inHeader = false
 				if opts.Flavor == "gutenberg" {
 					title = extractGutenbergTitle(text)
 					continue
 				} else {
 					title = path.Base(p)
 				}
-				inHeader = false
 			}
 			if inHeader {
 				continue
@@ -140,7 +140,9 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 			}
 			for i, r := range text {
 				if v := shouldBreak(phraseBuff, r); v > 0 {
-					phraseBuff = phraseBuff[0 : len(phraseBuff)-v]
+					if len(phraseBuff) > 0 {
+						phraseBuff = phraseBuff[0 : len(phraseBuff)-v]
+					}
 					if len(phraseBuff) >= 10 {
 						cleaned = clean(phraseBuff)
 						if len(cleaned) > 0 {
