@@ -57,12 +57,12 @@ func Ingest(o IngestOpts) error {
 	corpusid := db.StrToID(o.Corpus)
 	tablename := fmt.Sprintf("phrases_%s", corpusid)
 	_, err = conn.Exec(context.Background(),
-		`CREATE TABLE $1 (
+		fmt.Sprintf(`CREATE TABLE %s (
 			id SERIAL PRIMARY KEY,
 			sourceid char(7) NOT NULL,
 			phrase TEXT,
 			FOREIGN KEY (sourceid) REFERENCES sources(id)
-		)`, tablename)
+		)`, tablename))
 	if err != nil {
 		return fmt.Errorf("could not create table '%s': %w", tablename, err)
 	}
