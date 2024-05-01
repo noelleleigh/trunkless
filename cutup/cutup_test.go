@@ -82,6 +82,11 @@ func Test_shouldBreak(t *testing.T) {
 			args:     args{[]byte("whether good or"), ' '},
 			expected: 2,
 		},
+		{
+			name:     "phrase marker",
+			args:     args{[]byte("whither good"), ';'},
+			expected: 1,
+		},
 		// TODO test phrasemarkers
 	}
 

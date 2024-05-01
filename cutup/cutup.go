@@ -139,7 +139,7 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 				}
 			}
 			for i, r := range text {
-				if v := shouldBreak(phraseBuff, r); v > 0 {
+				if v := shouldBreak(phraseBuff, r); v >= 0 {
 					if len(phraseBuff) > 0 {
 						phraseBuff = phraseBuff[0 : len(phraseBuff)-v]
 					}
@@ -198,7 +198,7 @@ const maxSuffixLen = 8 // magic number based on longest suffix
 
 func shouldBreak(phraseBuff []byte, r rune) int {
 	if ok := phraseMarkers[r]; ok {
-		return 1
+		return 0
 	}
 
 	if r != ' ' {
