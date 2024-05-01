@@ -8,13 +8,13 @@ import (
 )
 
 func init() {
-	rootCmd.Flags().StringP("cutupdir", "d", "", "directory in which to write phrase files")
-	rootCmd.Flags().StringP("srcdir", "s", "", "directory of files to cut up")
-	rootCmd.Flags().IntP("workers", "w", 10, "number of workers to use when cutting up")
-	rootCmd.Flags().StringP("flavor", "f", "", "set of adapters to use when cutting up")
+	cutupCmd.Flags().StringP("cutupdir", "d", "", "directory in which to write phrase files")
+	cutupCmd.Flags().StringP("srcdir", "s", "", "directory of files to cut up")
+	cutupCmd.Flags().IntP("workers", "w", 10, "number of workers to use when cutting up")
+	cutupCmd.Flags().StringP("flavor", "f", "", "set of adapters to use when cutting up")
 
-	rootCmd.MarkFlagRequired("cutupdir")
-	rootCmd.MarkFlagRequired("srcdir")
+	cutupCmd.MarkFlagRequired("cutupdir")
+	cutupCmd.MarkFlagRequired("srcdir")
 
 	rootCmd.AddCommand(cutupCmd)
 }
