@@ -181,7 +181,13 @@ class PoemLine extends HTMLDivElement {
   }
 
   regen() {
-    fetch(new Request("/line")).then((resp) => {
+    let params = new URLSearchParams(document.location.search);
+    const corpusid = params.get("corpus");
+    let p = "/line";
+    if (corpusid != "" && corpusid != null) {
+      p = `/line?corpus=${corpusid}`;
+    }
+    fetch(new Request(p)).then((resp) => {
       if (!resp.ok) {
         throw new Error(`sadness stalks the land in ${resp.status} ways`);
       }
@@ -191,7 +197,12 @@ class PoemLine extends HTMLDivElement {
       this.querySelector(".linetext").setAttribute("data-source", payload.Source.Name);
       this.originalText = payload.Text;
       const source = payload.Source
-      const sourceName = source.Name.slice(source.Name.indexOf(' '));
+      // hacks for gutenberg name
+      let sourceName = source.Name;
+      const space = sourceName.indexOf(' ');
+      if (space > 0) {
+        sourceName = sourceName.slice(space);
+      }
       this.querySelector(".source").innerText = sourceName;
     });
   }

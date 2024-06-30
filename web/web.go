@@ -111,9 +111,11 @@ func Serve() error {
 	})
 
 	r.GET("/", func(c *gin.Context) {
+		corpusid := c.DefaultQuery("corpus", "c3d8e9")
 		c.HTML(http.StatusOK, "index.tmpl", struct {
+			SelectedCorpus string
 			Corpora []corpus
-		}{corpora})
+		}{corpusid, corpora})
 	})
 
 	r.GET("/line", func(c *gin.Context) {
