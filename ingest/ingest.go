@@ -12,8 +12,6 @@ import (
 	"github.com/vilmibm/trunkless/db"
 )
 
-const cutupDir = "/home/vilmibm/pg_plaintext/cutup"
-
 // TODO
 // - [X] finalize gutenberg ingestion
 // - [ ] clean up commands
@@ -36,6 +34,7 @@ type IngestOpts struct {
 
 func Ingest(o IngestOpts) error {
 	conn := o.Conn
+	cutupDir := o.CutupDir
 
 	dir, err := os.Open(o.CutupDir)
 	if err != nil {

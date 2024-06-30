@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path"
+	"path/filepath"
 	"strings"
 
 	"github.com/vilmibm/trunkless/db"
@@ -116,7 +117,8 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 					title = extractGutenbergTitle(text)
 					continue
 				} else {
-					title = path.Base(p)
+					base := path.Base(p)
+					title = strings.TrimSuffix(base, filepath.Ext(base))
 				}
 			}
 			if inHeader {
@@ -168,8 +170,16 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 			// there are a bunch of empty books in gutenberg :( these are text files
 			// that just have start and end markers with nothing in between. nothing
 			// i can do about it.
+
+			// in gfaqs I got a few no content files; they have all of their content
+			// on one line with a bunch of special characters. it's a pathological
+			// case and i'm shocked more doesn't break but somehow in this printf
+			// sourceid renders as '' and it doesn't end up in the title index.
 			fmt.Fprintf(os.Stderr, "WARN: no content found in '%s' '%s'\n", sourceid, p)
 		}
+		// I would leave empty stuff out of sources but we need the number of
+		// things written to sources to match the number of initial entires. this
+		// means some sources in the DB that will never be used but that's fine.
 		sources <- fmt.Sprintf("%s\t%s", sourceid, title)
 	}
 }
