@@ -133,6 +133,7 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 			}
 			if sourceid == "" {
 				sourceid = db.StrToID(title)
+				fmt.Fprintln(os.Stderr, sourceid, p)
 				prefix = sourceid + "\t"
 				of, err = os.Create(path.Join(opts.CutupDir, sourceid))
 				if err != nil {
