@@ -19,7 +19,7 @@ func init() {
 	rootCmd.AddCommand(cutupCmd)
 }
 
-var validFlavors = []string{"gutenberg"}
+var validFlavors = []string{"gutenberg", "geocities"}
 
 var cutupCmd = &cobra.Command{
 	Use:  "cutup",

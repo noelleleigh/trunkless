@@ -38,13 +38,15 @@ func extractGutenbergTitle(s string) string {
 }
 
 func Cutup(opts CutupOpts) error {
-	if opts.Flavor == "gutenberg" {
+	switch opts.Flavor {
+	case "gutenberg":
 		opts.headerEndCheck = gutenbergHeaderEndCheck
 		opts.footerBeginCheck = gutenbergFooterBeginCheck
-	} else {
+	default:
 		opts.headerEndCheck = defaultHeaderEndCheck
 		opts.footerBeginCheck = defaultFooterBeginCheck
 	}
+
 	err := os.Mkdir(opts.CutupDir, 0775)
 	if err != nil {
 		return fmt.Errorf("could not make '%s': %w", opts.CutupDir, err)
@@ -109,6 +111,11 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 		var text string
 		var prefix string
 
+		// geocities
+		var inTag bool
+		var tagSkip bool
+		tagBuff := []byte{}
+
 		for s.Scan() {
 			text = strings.TrimSpace(s.Text())
 			if inHeader && opts.headerEndCheck(text) {
@@ -142,6 +149,23 @@ func worker(opts CutupOpts, paths <-chan string, sources chan<- string) {
 				}
 			}
 			for i, r := range text {
+				if opts.Flavor == "geocities" {
+					if r == '<' {
+						inTag = true
+						continue
+					} else if r == '>' {
+						tagSkip = shouldSkipLine(string(tagBuff))
+						inTag = false
+						tagBuff = []byte{}
+					}
+					if inTag {
+						tagBuff = append(tagBuff, byte(r))
+						continue
+					}
+					if tagSkip {
+						continue
+					}
+				}
 				if v := shouldBreak(phraseBuff, r); v >= 0 {
 					if len(phraseBuff) > 0 {
 						phraseBuff = phraseBuff[0 : len(phraseBuff)-v]
@@ -305,4 +329,24 @@ func clean(bs []byte) string {
 	}
 
 	return s
+}
+
+var ignoreTags = []string{
+	"head",
+	"script",
+	"style",
+}
+
+func shouldSkipLine(tagBuff string) bool {
+	var s string
+	for _, t := range ignoreTags {
+		s = strings.ToLower(tagBuff)
+		if strings.Contains(s, "/"+t) {
+			return false
+		}
+		if strings.Contains(s, t) {
+			return true
+		}
+	}
+	return false
 }

@@ -85,7 +85,7 @@ func Test_shouldBreak(t *testing.T) {
 		{
 			name:     "phrase marker",
 			args:     args{[]byte("whither good"), ';'},
-			expected: 1,
+			expected: 0,
 		},
 		// TODO test phrasemarkers
 	}
@@ -184,6 +184,92 @@ func Test_clean(t *testing.T) {
 	for _, c := range cs {
 		t.Run(c.arg, func(t *testing.T) {
 			result := clean([]byte(c.arg))
+			if result != c.expected {
+				t.Errorf("got '%v', expected '%v'", result, c.expected)
+			}
+		})
+	}
+}
+
+func test_shouldSkipLine(t *testing.T) {
+	cases := []struct {
+		name     string
+		arg      string
+		expected bool
+	}{
+		{
+			name: "blank",
+			arg:  "",
+		},
+		{
+			name: "lol",
+			arg:  "lol",
+		},
+		{
+			name:     "head",
+			arg:      "head",
+			expected: true,
+		},
+		{
+			name:     "HEAD",
+			arg:      "HEAD",
+			expected: true,
+		},
+		{
+			name:     "/HEAD",
+			arg:      "/HEAD",
+			expected: false,
+		},
+		{
+			name:     "/head",
+			arg:      "/head",
+			expected: false,
+		},
+		{
+			name:     "style",
+			arg:      "style",
+			expected: true,
+		},
+		{
+			name:     "STYLE",
+			arg:      "STYLE",
+			expected: true,
+		},
+		{
+			name:     "/STYLE",
+			arg:      "/STYLE",
+			expected: false,
+		},
+		{
+			name:     "/style",
+			arg:      "/style",
+			expected: false,
+		},
+		{
+			name:     "script",
+			arg:      "script",
+			expected: true,
+		},
+		{
+			name:     "SCRIPT",
+			arg:      "SCRIPT",
+			expected: true,
+		},
+		{
+			name:     "/SCRIPT",
+			arg:      "/SCRIPT",
+			expected: false,
+		},
+		{
+			name:     "/script",
+			arg:      "/script",
+			expected: false,
+		},
+	}
+
+	for _, c := range cases {
+		t.Run(c.arg, func(t *testing.T) {
+			result := shouldSkipLine(c.arg)
 			if result != c.expected {
 				t.Errorf("got '%v', expected '%v'", result, c.expected)
 			}
