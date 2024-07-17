@@ -78,6 +78,8 @@ class LineEditor extends Button {
     this.connected = true;
   }
   done() {
+    const l = this.closest(".line");
+    l.setAttribute("draggable", true);
     this.setAttribute("title", "edit line text");
     this.editing = false;
     this.linetext.innerText = this.i.value;
@@ -94,10 +96,11 @@ class LineEditor extends Button {
     this.editing = true;
     this.setAttribute("title", "finish editing");
     this.style['font-weight'] = "bold";
-    const l = this.linetext.parentElement;
+    const l = this.closest(".line");
+    l.setAttribute("draggable", false);
     this.linetext.style.display = "none";
     this.i.value = this.linetext.innerText;
-    l.appendChild(this.f);
+    this.linetext.parentElement.appendChild(this.f);
     this.i.focus();
   }
 }
