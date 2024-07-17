@@ -78,6 +78,30 @@ func Serve() error {
 	}
 	rows.Close()
 
+	/*
+		the changes I am considering making pre-release:
+
+		- multi-corpus select. the upper drop down selects a default corpus, but
+		different corpora can be picked per-line.
+		- selecting a randomizing strategy.
+		  1. phrase weighted. pick random phrase from all in corpora with equal weight; bigger sources thus appear more.
+			2. source weighted. pick a random source from a corpora then pick a random phrase. all sources thus have an equal chance of being selected from.
+		- posting to a global feed.
+
+			counter arguments.
+
+			- this is a question of corpus curation. a corpus should have the
+			combination of sources desired to cut from.
+			- source weighting is not trivial -- need to pre-cache the IDs for
+			sources or fetch them all into memory and hope they are indexed properly
+			so it doesn't take too long.
+			- posting means i have to rethink editing -- it would need to become just a scissors tool.
+			- posting _should_ be hooked into activitypub -- i don't want to figure
+			that out before release
+
+			I am going to punt and focus on getting this released.
+	*/
+
 	fmt.Printf("found %d tables\n", len(tables))
 
 	for _, tablename := range tables {
@@ -114,7 +138,7 @@ func Serve() error {
 		corpusid := c.DefaultQuery("corpus", "c3d8e9")
 		c.HTML(http.StatusOK, "index.tmpl", struct {
 			SelectedCorpus string
-			Corpora []corpus
+			Corpora        []corpus
 		}{corpusid, corpora})
 	})
 
