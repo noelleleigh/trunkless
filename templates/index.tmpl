@@ -101,15 +101,15 @@ a {
         .line:hover {
           background-color: rgba(125,125,125,.40);
         }
-        .cont:hover {
+        .cont {
           cursor: grab;
         }
         div.linectrl {
           text-align: right;
         }
         div.linectrl button {
-          width: 60px;
-          height: 30px;
+          /*width: 60px;
+          height: 30px;*/
         }
         div.line:not(.unpinned) .linetext {
           font-weight: bold;
@@ -124,7 +124,7 @@ a {
           <span class="linetext"></span>
         </div>
         <div class="linectrl">
-          <button is="line-pinner">PIN</button><button is="line-regenner">REGEN</button><button is="line-editor">EDIT</button><button is="line-remover">KILL</button>
+          <button is="line-pinner">&#128274;</button><button is="line-regenner">&circlearrowright;</button><button is="line-editor">&#9998;</button><button is="line-remover">&#128465;</button>
         </div>
       </div>
       <div is="source-text" class="source"></div>
@@ -177,7 +177,7 @@ a {
     </div>
     <div class="main">
       <div style="margin-bottom: 5px">
-        <button is="poem-regenner">regenerate unpinned lines</button>
+        <button is="poem-regenner">&circlearrowright; regenerate lines</button>
         <button is="poem-resetter"></button>
       <form is="poem-saver" style="border-right: 1px solid grey;border-bottom: 1px solid grey;border-left: 1px solid grey; display:inline; padding:4px;">
         <button class="copy" type="submit">copy</button>

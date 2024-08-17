@@ -25,25 +25,26 @@ class LineRemover extends Button {
   }
   click() {
     const container = this.closest("div.line");
-    const gp = container.parentElement;
     container.remove();
-    gp.dispatchEvent(reorder);
   }
 }
 
 class LinePinner extends Button {
   connectedCallback() {
-    this.setAttribute("title", "pin line in place");
+    this.setAttribute("title", "lock line, preventing edits or regeneration");
   }
   click() {
+    const container = this.closest("div.line");
     const l = this.closest("div.line");
     l.classList.toggle("unpinned");
     if (l.classList.contains("unpinned")) {
       this.classList.remove("pinned");
-      this.setAttribute("title", "lock line in place");
+      this.setAttribute("title", "lock line, preventing edits or regeneration");
+      container.dispatchEvent(unpinned);
     } else {
       this.classList.add("pinned");
       this.setAttribute("title", "unlock line");
+      container.dispatchEvent(pinned);
     }
   }
 }
@@ -130,7 +131,7 @@ class PoemRegenner extends Button {
 class PoemResetter extends Button {
   connectedCallback() {
     // TODO set title
-    this.innerText = "reset";
+    this.innerText = "reset all";
   }
   click() {
     $("div[is=poem-lines]").reset();
@@ -145,6 +146,31 @@ class PoemLine extends HTMLDivElement {
       e.preventDefault();
       this.querySelector("div[is=source-text]").edited();
     });
+
+    this.addEventListener("pinned", (e) => {
+      this.querySelectorAll("button").forEach((el) => {
+        if (el.getAttribute("is") == "line-pinner") {
+          return;
+        }
+        el.setAttribute("disabled", "lol");
+      });
+      this.setAttribute("draggable", false);
+      this.style.cursor = "not-allowed";
+      this.querySelector(".cont").style.cursor = "not-allowed";
+    });
+
+    this.addEventListener("unpinned", (e) => {
+      this.querySelectorAll("button").forEach((el) => {
+        if (el.getAttribute("is") == "line-pinner") {
+          return;
+        }
+        el.removeAttribute("disabled");
+      });
+      this.setAttribute("draggable", true);
+      this.style.cursor = "grab";
+      this.querySelector(".cont").style.cursor = "grab";
+    });
+
   }
 
   connectedCallback() {
@@ -253,7 +279,6 @@ class PoemLines extends HTMLDivElement {
     ld.classList.add("unpinned");
     this.append(ld);
     ld.regen();
-    this.dispatchEvent(reorder);
   }
 
   regenerate() {
@@ -447,7 +472,8 @@ class PoemSaver extends HTMLFormElement {
   }
 }
 
-const reorder = new CustomEvent("reorder", {bubbles: true});
+const pinned = new CustomEvent("pinned", {bubbles: true});
+const unpinned = new CustomEvent("unpinned", {bubbles: true});
 const edited = new CustomEvent("edited", {bubbles: true});
 customElements.define("about-toggler", AboutToggler, { extends: "a" });
 customElements.define("poem-saver", PoemSaver, { extends: "form" });
