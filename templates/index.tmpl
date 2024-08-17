@@ -54,13 +54,6 @@ a {
   animation-duration: 1s;
 }
 
-.movetarget {
-  /* animation-name: rainbow-top-border;
-  animation-duration: 1s; */
-
-  border-top: 2px solid grey;
-}
-
 @keyframes rainbow-top-border {
   20%{border-top: 2px solid red;}
   20%{border-top: 2px solid orange;}
@@ -98,6 +91,12 @@ a {
         }
         .linetext:hover {
           cursor: auto;
+        }
+        .line {
+          border-top: 2px solid rgba(0,0,0,0);
+        }
+        .line.movetarget {
+          border-top: 2px solid grey;
         }
         .line:hover {
           background-color: rgba(125,125,125,.40);
