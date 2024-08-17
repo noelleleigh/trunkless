@@ -14,7 +14,7 @@ CREATE TABLE IF NOT EXISTS sources (
   corpusid char(7) NOT NULL,
   name     TEXT UNIQUE,
 
-  FOREIGN KEY (corpusid) REFERENCES corpora(id)
+  FOREIGN KEY (corpusid) REFERENCES corpora(id) ON DELETE CASCADE
 );
 
 -- CREATE TABLE IF NOT EXISTS phrases (

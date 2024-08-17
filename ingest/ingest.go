@@ -60,7 +60,7 @@ func Ingest(o IngestOpts) error {
 			id SERIAL PRIMARY KEY,
 			sourceid char(7) NOT NULL,
 			phrase TEXT,
-			FOREIGN KEY (sourceid) REFERENCES sources(id)
+			FOREIGN KEY (sourceid) REFERENCES sources(id) ON DELETE CASCADE
 		)`, tablename))
 	if err != nil {
 		return fmt.Errorf("could not create table '%s': %w", tablename, err)
