@@ -155,15 +155,7 @@ class PoemLine extends HTMLDivElement {
 
     const lid = Math.floor(Math.random()*100);
     this.setAttribute("id", `line-${lid}`);
-    this.addEventListener("dragover", (e) => {
-      e.preventDefault();
-      e.dataTransfer.dropEffect = "move";
-    });
-    this.addEventListener("drop", (e) => {
-      e.preventDefault();
-      const lid = e.dataTransfer.getData("text/plain");
-      this.closest(".line").before(document.getElementById(lid));
-    });
+
     this.addEventListener("dragstart", (e) => {
       e.dataTransfer.dropEffect = "move";
       e.dataTransfer.setData("text/plain", this.getAttribute("id"));
@@ -222,6 +214,25 @@ class PoemLines extends HTMLDivElement {
       if (this.querySelectorAll("div.line:not(.unpinned)").length > 0) {
         e.preventDefault();
       }
+    });
+    this.addEventListener("dragenter", (e) => {
+      e.preventDefault();
+      $$(".movetarget").forEach((el) => {
+        el.classList.remove("movetarget");
+      })
+      const pl = e.target.closest("div.line");
+      pl.classList.add("movetarget");
+    });
+    this.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+    });
+    this.addEventListener("drop", (e) => {
+      e.preventDefault();
+      const pl = e.target.closest("div.line");
+      pl.classList.remove("movetarget");
+      const lid = e.dataTransfer.getData("text/plain");
+      pl.before(document.getElementById(lid));
     });
   }
 
