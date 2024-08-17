@@ -54,6 +54,21 @@ a {
   animation-duration: 1s;
 }
 
+.movetarget {
+  /* animation-name: rainbow-top-border;
+  animation-duration: 1s; */
+
+  border-top: 2px solid grey;
+}
+
+@keyframes rainbow-top-border {
+  20%{border-top: 2px solid red;}
+  20%{border-top: 2px solid orange;}
+  60%{border-top: 2px solid yellow;}
+  80%{border-top: 2px solid green;}
+  100%{border-top: 2px solid blue;}
+}
+
 @keyframes rainbow {
   20%{color: red;}
   40%{color: orange;}
