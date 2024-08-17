@@ -25,7 +25,7 @@ body {
 }
 
 #about {
-  background-color: grey;
+  background-color: white;
   display: none;
   color: black;
 }
@@ -130,11 +130,17 @@ a {
       <div is="source-text" class="source"></div>
     </template>
 
-    <h1 style="display:block;margin:0">Trunkless</h1>
-    <p style="margin-top:0;font-size:80%">
-        <a is="about-toggler"></a>
-        <a is="theme-toggler"></a>
-    </p>
+    <div style="display:grid; grid-template-columns: repeat(3, 1fr); grid-auto-rows: minmax(100px, auto); gap: 10px;">
+      <div style="grid-column: 1 / 3; grid-row: 1">
+        <h1 style="display:inline-block;margin:0">Trunkless</h1>
+      </div>
+      <div style="grid-column: 3; grid-row: 1; text-align: right; font-size:150%">
+        <span class="corner" style="background:white; padding-right:1em; padding-left:1em; padding-bottom: .5em">
+        <a style="font-weight: bold" is="about-toggler"></a>
+        <a class="bordered" style="border: 1px solid black; padding: 0 6px 0 6px" is="theme-toggler"></a>
+        </span>
+      </div>
+    </div>
     <div id="about">
     <p>
       HELLO. THIS IS A <a href="https://github.com/vilmibm/trunkless">SOFT WARE</a> FOR MAKING <a href="https://en.wikipedia.org/wiki/Cut-up_technique">CUT-UP POETRY</a>. THERE ARE A VARIETY OF CORPORA TO CHOOSE FROM:
@@ -151,7 +157,6 @@ a {
     </p>
     </div>
     <div class="controls">
-      <button is="poem-resetter"></button>
       <form method="GET" action="/" style="display:inline">
         <label for="corpus-select">corpus:</label>
         <select name="corpus" id="corpus-select">
@@ -166,18 +171,18 @@ a {
         </select>
         <button type="submit">go</button>
       </form>
-
-      <form is="poem-saver" style="border: 1px solid grey; display:inline; padding:4px;">
+    </div>
+    <div class="main">
+      <div style="margin-bottom: 5px">
+        <button is="poem-regenner">regenerate unpinned lines</button>
+        <button is="poem-resetter"></button>
+      <form is="poem-saver" style="border-right: 1px solid grey;border-bottom: 1px solid grey;border-left: 1px solid grey; display:inline; padding:4px;">
         <button class="copy" type="submit">copy</button>
         <button class="save" type="submit">save</button>
         <input name="type" value="text" type="radio" checked />as text
         <input name="type" value="image" type="radio"/>as image
         <input name="sources" type="checkbox"/>include sources
       </form>
-    </div>
-    <div class="main">
-      <div style="margin-bottom: 5px">
-        <button is="poem-regenner">regenerate unpinned lines</button>
       </div>
       <div is="poem-lines"></div>
       <div>

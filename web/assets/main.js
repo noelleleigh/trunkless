@@ -309,30 +309,39 @@ class ThemeToggler extends HTMLAnchorElement {
   constructor() {
     super();
     this.addEventListener("click", this.click);
-    this.theme = "dark";
+    this.theme = "light";
     this.innerText = "◑";
     this.setAttribute("aria-hidden", "true");
     this.style.cursor = "pointer";
   }
 
   click() {
+    // TODO this should all be done via class toggling my dude
     if (this.theme == "light") {
       this.theme = "dark";
       $("body").style.backgroundColor = "black";
       $("body").style.backgroundImage = 'url("/bg_dark.gif")';
       $("body").style.color = "white";
       $(".main").style.backgroundColor = "black";
+      $("#about").style.backgroundColor = "black";
+      $("#about").style.color = "white";
       $("h1").style.backgroundColor = "black";
       $(".controls form").style.backgroundColor = "black";
+      $(".corner").style.backgroundColor = "black";
+      $(".corner .bordered").style.border = "1px solid white";
       $$("a").forEach((e) => { e.style.color = "white" });
     } else {
       this.theme = "light";
       $("body").style.backgroundColor = "white";
       $("body").style.backgroundImage = 'url("/bg_light.gif")';
       $("body").style.color = "black";
+      $("#about").style.backgroundColor = "white";
+      $("#about").style.color = "black";
       $(".main").style.backgroundColor = "white";
       $(".controls form").style.backgroundColor = "white";
       $("h1").style.backgroundColor = "white";
+      $(".corner").style.backgroundColor = "white";
+      $(".corner .bordered").style.border = "1px solid black";
       $$("a").forEach((e) => { e.style.color = "black" });
     }
   }
