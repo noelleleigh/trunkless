@@ -1,6 +1,6 @@
 source ./pg.env
 
-pg_ctl init
+$PGCTL init
 
 mkdir -p "$PGDATA/sockets"
 echo "unix_socket_directories = 'sockets'" >> "$PGDATA/postgresql.conf"

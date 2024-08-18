@@ -2,4 +2,4 @@
 
 source ./pg.env
 
-pg_ctl start
+$PGCTL start
