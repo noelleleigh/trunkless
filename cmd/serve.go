@@ -6,7 +6,7 @@ import (
 )
 
 func init() {
-	cutupCmd.Flags().IntP("port", "p", 8080, "port to listen on")
+	serveCmd.Flags().IntP("port", "p", 8080, "port to listen on")
 	rootCmd.AddCommand(serveCmd)
 }
 
