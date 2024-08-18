@@ -31,7 +31,11 @@ type corpus struct {
 	MaxID *big.Int
 }
 
-func Serve() error {
+type ServeOpts struct {
+	Port int
+}
+
+func Serve(opts ServeOpts) error {
 	r := gin.Default()
 	r.SetFuncMap(template.FuncMap{
 		"upper": strings.ToUpper,
@@ -187,5 +191,5 @@ func Serve() error {
 		c.JSON(http.StatusOK, p)
 	})
 
-	return r.Run() // 8080
+	return r.Run(fmt.Sprintf(":%d", opts.Port))
 }
